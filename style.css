@@ -4,5 +4,8 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #ff0000; /* 赤に変更 */
+    background-color: #f0f0f0; /* 薄い灰色に戻す */
+  }
+  #game-container {
+    display: block;
   }
