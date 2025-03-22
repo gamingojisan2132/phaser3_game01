@@ -5,7 +5,7 @@ const config = {
   parent: 'game-container',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 500 } }
+    arcade: { gravity: { y: 1000 } }
   },
   scene: {
     preload: preload,
@@ -25,11 +25,10 @@ let scoreText;
 
 function preload() {
   console.log("Preload is running!");
-  // 画像を読み込み
-  this.load.image('player', 'assets/player.png'); // プレイヤー画像
-  this.load.image('obstacle', 'assets/obstacle.png'); // 障害物画像
-  this.load.image('background', 'assets/background.png'); // 背景画像
-  this.load.image('ground', 'assets/ground.png'); // 地面画像
+  this.load.image('player', 'assets/player.png');
+  this.load.image('obstacle', 'assets/obstacle.png');
+  this.load.image('background', 'assets/background.png');
+  this.load.image('ground', 'assets/ground.png');
 }
 
 function create() {
@@ -45,7 +44,7 @@ function create() {
 
   // プレイヤーを追加
   player = this.physics.add.sprite(100, 200, 'player');
-  player.setDisplaySize(50, 50); // 画像サイズを調整
+  player.setDisplaySize(50, 50);
   player.body.setCollideWorldBounds(true);
   this.physics.add.collider(player, ground);
 
@@ -69,7 +68,7 @@ function create() {
 
   // 障害物を定期的に生成
   this.time.addEvent({
-    delay: 2000,
+    delay: 1200, // 2秒→1.5秒に短縮
     callback: spawnObstacle,
     callbackScope: this,
     loop: true
@@ -78,10 +77,12 @@ function create() {
 
 function spawnObstacle() {
   console.log("Spawning obstacle!");
-  const obstacle = this.physics.add.sprite(600, 370, 'obstacle');
-  obstacle.setDisplaySize(20, 20); // 画像サイズを調整
+  // 障害物のサイズをランダムに（幅と高さを10～30ピクセルの範囲で）
+  const size = Phaser.Math.Between(15, 35);
+  const obstacle = this.physics.add.sprite(600, 380 - size / 2, 'obstacle'); // Y座標をサイズに応じて調整
+  obstacle.setDisplaySize(size, size);
   obstacles.add(obstacle);
-  obstacle.body.setVelocityX(-200);
+  obstacle.body.setVelocityX(-400); // 速度を-200→-300に
   obstacle.body.allowGravity = false;
   obstacle.body.setImmovable(false);
 }
@@ -100,7 +101,7 @@ function gameOver(player, obstacle) {
 function update() {
   if (keys.jump.isDown && player.body.touching.down) {
     console.log("Jump triggered!");
-    player.body.setVelocityY(-300);
+    player.body.setVelocityY(-280);
   }
 
   // 障害物がプレイヤーを通過したらスコア加算
