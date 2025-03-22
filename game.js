@@ -22,7 +22,9 @@ let ground;
 let obstacles;
 let score = 0;
 let scoreText;
-let highScore = localStorage.getItem('highScore') || 0; // 最高スコアをローカルストレージから取得
+let highScore = localStorage.getItem('highScore') || 0;
+let jumpSound; // ジャンプ音
+let hitSound; // 衝突音
 
 function preload() {
   console.log("Preload is running!");
@@ -30,6 +32,9 @@ function preload() {
   this.load.image('obstacle', 'assets/obstacle.png');
   this.load.image('background', 'assets/background.png');
   this.load.image('ground', 'assets/ground.png');
+  // サウンドを読み込み
+  this.load.audio('jump', 'assets/jump.mp3');
+  this.load.audio('hit', 'assets/hit.mp3');
 }
 
 function create() {
@@ -67,6 +72,10 @@ function create() {
   scoreText = this.add.text(20, 20, 'Score: 0', { fontSize: '24px', color: '#ffffff', backgroundColor: '#000000' });
   scoreText.setDepth(1);
 
+  // サウンドを設定
+  jumpSound = this.sound.add('jump');
+  hitSound = this.sound.add('hit');
+
   // 障害物を定期的に生成
   this.time.addEvent({
     delay: 1200,
@@ -90,6 +99,9 @@ function spawnObstacle() {
 function gameOver(player, obstacle) {
   console.log("Game Over! Final Score: " + score);
   this.physics.pause();
+
+  // 衝突音を再生
+  hitSound.play();
 
   // 最高スコアを更新
   if (score > highScore) {
@@ -123,6 +135,8 @@ function update() {
   if (keys.jump.isDown && player.body.touching.down) {
     console.log("Jump triggered!");
     player.body.setVelocityY(-300);
+    // ジャンプ音を再生
+    jumpSound.play();
   }
 
   // 障害物がプレイヤーを通過したらスコア加算
