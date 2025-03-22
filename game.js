@@ -25,15 +25,17 @@ let scoreText;
 let highScore = localStorage.getItem('highScore') || 0;
 let jumpSound;
 let hitSound;
+let bgm;
 
 function preload() {
   console.log("Preload is running!");
-  this.load.image('player', 'assets/player.png');
   this.load.image('obstacle', 'assets/obstacle.png');
   this.load.image('background', 'assets/background.png');
   this.load.image('ground', 'assets/ground.png');
+  this.load.spritesheet('player', 'assets/player-sprite.png', { frameWidth: 50, frameHeight: 50 });
   this.load.audio('jump', 'assets/jump.mp3');
   this.load.audio('hit', 'assets/hit.mp3');
+  this.load.audio('bgm', 'assets/bgm.mp3');
 }
 
 function create() {
@@ -53,6 +55,28 @@ function create() {
   player.body.setCollideWorldBounds(true);
   this.physics.add.collider(player, ground);
 
+  // プレイヤーのアニメーションを定義
+  this.anims.create({
+    key: 'run',
+    frames: this.anims.generateFrameNumbers('player', { start: 0, end: 1 }),
+    frameRate: 16,
+    repeat: -1
+  });
+  this.anims.create({
+    key: 'jump',
+    frames: this.anims.generateFrameNumbers('player', { start: 2, end: 2 }),
+    frameRate: 1,
+    repeat: 0
+  });
+  this.anims.create({
+    key: 'land',
+    frames: this.anims.generateFrameNumbers('player', { start: 3, end: 3 }),
+    frameRate: 1,
+    repeat: 0
+  });
+  player.play('run');
+  console.log("Player animation set to 'run'");
+
   // スペースキーの入力設定
   keys = this.input.keyboard.addKeys({
     jump: Phaser.Input.Keyboard.KeyCodes.SPACE
@@ -67,13 +91,15 @@ function create() {
   this.physics.add.collider(player, obstacles, gameOver, null, this);
   this.physics.add.collider(obstacles, ground);
 
-  // スコア表示（カスタムフォント適用）
+  // スコア表示
   scoreText = this.add.text(20, 20, 'Score: 0', { fontFamily: 'CustomFont', fontSize: '24px', color: '#ffffff', backgroundColor: '#000000' });
   scoreText.setDepth(1);
 
   // サウンドを設定
   jumpSound = this.sound.add('jump');
   hitSound = this.sound.add('hit');
+  bgm = this.sound.add('bgm', { loop: true });
+  bgm.play();
 
   // 障害物を定期的に生成
   this.time.addEvent({
@@ -99,22 +125,19 @@ function gameOver(player, obstacle) {
   console.log("Game Over! Final Score: " + score);
   this.physics.pause();
 
-  // 衝突音を再生
   hitSound.play();
+  bgm.stop();
 
-  // 最高スコアを更新
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('highScore', highScore);
   }
 
-  // ゲームオーバーテキストとスコアを表示（カスタムフォント適用）
   this.add.text(300, 150, 'Game Over', { fontFamily: 'CustomFont', fontSize: '32px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
   this.add.text(300, 200, 'Final Score: ' + score, { fontFamily: 'CustomFont', fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
   this.add.text(300, 230, 'High Score: ' + highScore, { fontFamily: 'CustomFont', fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
 
-  // リスタートボタンを追加（カスタムフォント適用）
-  const restartButton = this.add.text(300, 280, 'Restart', { fontFamily: 'CustomFont', fontSize: '24px', color: '#ffffff', backgroundColor: '#0000ff', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+  const restartButton = this.add.text(300, 280, 'Restart', { fontFamily: 'CustomFont', fontSize: '24px', color: '#ffffff', backgroundColor: '#fca600', padding: { x: 10, y: 5 } }).setOrigin(0.5);
   restartButton.setInteractive();
   restartButton.on('pointerdown', () => {
     score = 0;
@@ -122,8 +145,7 @@ function gameOver(player, obstacle) {
     this.scene.restart();
   });
 
-  // スペースキーでもリスタート（重複しないように一度削除してから追加）
-  keys.jump.removeAllListeners(); // 既存のリスナーを削除
+  keys.jump.removeAllListeners();
   keys.jump.on('down', () => {
     score = 0;
     scoreText.setText('Score: ' + score);
@@ -136,9 +158,16 @@ function update() {
     console.log("Jump triggered!");
     player.body.setVelocityY(-300);
     jumpSound.play();
+    player.play('jump');
+  } else if (player.body.touching.down) {
+    if (player.anims.currentAnim.key !== 'run') {
+      console.log("Playing run animation");
+      player.play('run');
+    }
+  } else {
+    player.play('jump');
   }
 
-  // 障害物がプレイヤーを通過したらスコア加算
   obstacles.getChildren().forEach(obstacle => {
     if (obstacle.x < player.x && !obstacle.scored) {
       score += 1;
