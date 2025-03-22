@@ -20,23 +20,32 @@ let player;
 let keys;
 let ground;
 let obstacles;
+let score = 0;
+let scoreText;
 
 function preload() {
   console.log("Preload is running!");
+  // 画像を読み込み
+  this.load.image('player', 'assets/player.png'); // プレイヤー画像
+  this.load.image('obstacle', 'assets/obstacle.png'); // 障害物画像
+  this.load.image('background', 'assets/background.png'); // 背景画像
+  this.load.image('ground', 'assets/ground.png'); // 地面画像
 }
 
 function create() {
   console.log("Create is running!");
-  // 地面（赤い床）を追加
-  ground = this.add.rectangle(300, 390, 600, 20, 0xff0000);
+  // 背景を追加
+  this.add.image(300, 200, 'background').setDisplaySize(600, 400);
+
+  // 地面を追加
+  ground = this.add.image(300, 390, 'ground').setDisplaySize(600, 20);
   this.physics.add.existing(ground);
   ground.body.setImmovable(true);
   ground.body.allowGravity = false;
 
-  // プレイヤー（青い四角形）を追加
-  player = this.physics.add.existing(
-    this.add.rectangle(100, 200, 50, 50, 0x0000ff)
-  );
+  // プレイヤーを追加
+  player = this.physics.add.sprite(100, 200, 'player');
+  player.setDisplaySize(50, 50); // 画像サイズを調整
   player.body.setCollideWorldBounds(true);
   this.physics.add.collider(player, ground);
 
@@ -54,6 +63,10 @@ function create() {
   this.physics.add.collider(player, obstacles, gameOver, null, this);
   this.physics.add.collider(obstacles, ground);
 
+  // スコア表示
+  scoreText = this.add.text(20, 20, 'Score: 0', { fontSize: '24px', color: '#ffffff', backgroundColor: '#000000' });
+  scoreText.setDepth(1);
+
   // 障害物を定期的に生成
   this.time.addEvent({
     delay: 2000,
@@ -65,8 +78,8 @@ function create() {
 
 function spawnObstacle() {
   console.log("Spawning obstacle!");
-  const obstacle = this.add.rectangle(600, 370, 20, 20, 0x00ff00); // Y座標を370に変更
-  this.physics.add.existing(obstacle);
+  const obstacle = this.physics.add.sprite(600, 370, 'obstacle');
+  obstacle.setDisplaySize(20, 20); // 画像サイズを調整
   obstacles.add(obstacle);
   obstacle.body.setVelocityX(-200);
   obstacle.body.allowGravity = false;
@@ -74,11 +87,12 @@ function spawnObstacle() {
 }
 
 function gameOver(player, obstacle) {
-  console.log("Game Over!");
+  console.log("Game Over! Final Score: " + score);
   this.physics.pause();
-  // Game Overテキストを表示
-  this.add.text(300, 200, 'Game Over', { fontSize: '32px', color: '#ff0000' }).setOrigin(0.5);
+  this.add.text(300, 200, 'Game Over\nFinal Score: ' + score, { fontSize: '32px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
   this.time.delayedCall(2000, () => {
+    score = 0;
+    scoreText.setText('Score: ' + score);
     this.scene.restart();
   });
 }
@@ -89,8 +103,13 @@ function update() {
     player.body.setVelocityY(-300);
   }
 
-  // 障害物が画面外に出たら削除
+  // 障害物がプレイヤーを通過したらスコア加算
   obstacles.getChildren().forEach(obstacle => {
+    if (obstacle.x < player.x && !obstacle.scored) {
+      score += 1;
+      obstacle.scored = true;
+      scoreText.setText('Score: ' + score);
+    }
     if (obstacle.x < -20) {
       obstacle.destroy();
     }
