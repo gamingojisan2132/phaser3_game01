@@ -18,7 +18,8 @@ const game = new Phaser.Game(config);
 
 let player;
 let keys;
-let ground; // 地面をグローバル変数に
+let ground;
+let obstacles;
 
 function preload() {
   console.log("Preload is running!");
@@ -27,18 +28,16 @@ function preload() {
 function create() {
   console.log("Create is running!");
   // 地面（赤い床）を追加
-  ground = this.add.rectangle(300, 390, 600, 20, 0xff0000); // Y座標を390に、色を赤に
+  ground = this.add.rectangle(300, 390, 600, 20, 0xff0000);
   this.physics.add.existing(ground);
-  ground.body.setImmovable(true); // 地面は動かない
-  ground.body.allowGravity = false; // 地面に重力を無効化
+  ground.body.setImmovable(true);
+  ground.body.allowGravity = false;
 
   // プレイヤー（青い四角形）を追加
   player = this.physics.add.existing(
-    this.add.rectangle(100, 200, 50, 50, 0x0000ff) // Y座標を200に変更
+    this.add.rectangle(100, 200, 50, 50, 0x0000ff)
   );
-  player.body.setCollideWorldBounds(true); // 画面外に出ないように
-
-  // プレイヤーと地面の衝突を設定
+  player.body.setCollideWorldBounds(true);
   this.physics.add.collider(player, ground);
 
   // スペースキーの入力設定
@@ -49,12 +48,51 @@ function create() {
   keys.jump.on('down', () => {
     console.log("Space key pressed!");
   });
+
+  // 障害物グループを作成
+  obstacles = this.physics.add.group();
+  this.physics.add.collider(player, obstacles, gameOver, null, this);
+  this.physics.add.collider(obstacles, ground);
+
+  // 障害物を定期的に生成
+  this.time.addEvent({
+    delay: 2000,
+    callback: spawnObstacle,
+    callbackScope: this,
+    loop: true
+  });
+}
+
+function spawnObstacle() {
+  console.log("Spawning obstacle!");
+  const obstacle = this.add.rectangle(600, 370, 20, 20, 0x00ff00); // Y座標を370に変更
+  this.physics.add.existing(obstacle);
+  obstacles.add(obstacle);
+  obstacle.body.setVelocityX(-200);
+  obstacle.body.allowGravity = false;
+  obstacle.body.setImmovable(false);
+}
+
+function gameOver(player, obstacle) {
+  console.log("Game Over!");
+  this.physics.pause();
+  // Game Overテキストを表示
+  this.add.text(300, 200, 'Game Over', { fontSize: '32px', color: '#ff0000' }).setOrigin(0.5);
+  this.time.delayedCall(2000, () => {
+    this.scene.restart();
+  });
 }
 
 function update() {
-  console.log("Touching down:", player.body.touching.down); // デバッグ用
   if (keys.jump.isDown && player.body.touching.down) {
     console.log("Jump triggered!");
-    player.body.setVelocityY(-300); // 1回だけジャンプ
+    player.body.setVelocityY(-300);
   }
+
+  // 障害物が画面外に出たら削除
+  obstacles.getChildren().forEach(obstacle => {
+    if (obstacle.x < -20) {
+      obstacle.destroy();
+    }
+  });
 }
