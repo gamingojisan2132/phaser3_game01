@@ -23,8 +23,8 @@ let obstacles;
 let score = 0;
 let scoreText;
 let highScore = localStorage.getItem('highScore') || 0;
-let jumpSound; // ジャンプ音
-let hitSound; // 衝突音
+let jumpSound;
+let hitSound;
 
 function preload() {
   console.log("Preload is running!");
@@ -32,7 +32,6 @@ function preload() {
   this.load.image('obstacle', 'assets/obstacle.png');
   this.load.image('background', 'assets/background.png');
   this.load.image('ground', 'assets/ground.png');
-  // サウンドを読み込み
   this.load.audio('jump', 'assets/jump.mp3');
   this.load.audio('hit', 'assets/hit.mp3');
 }
@@ -68,8 +67,8 @@ function create() {
   this.physics.add.collider(player, obstacles, gameOver, null, this);
   this.physics.add.collider(obstacles, ground);
 
-  // スコア表示
-  scoreText = this.add.text(20, 20, 'Score: 0', { fontSize: '24px', color: '#ffffff', backgroundColor: '#000000' });
+  // スコア表示（カスタムフォント適用）
+  scoreText = this.add.text(20, 20, 'Score: 0', { fontFamily: 'CustomFont', fontSize: '24px', color: '#ffffff', backgroundColor: '#000000' });
   scoreText.setDepth(1);
 
   // サウンドを設定
@@ -109,13 +108,13 @@ function gameOver(player, obstacle) {
     localStorage.setItem('highScore', highScore);
   }
 
-  // ゲームオーバーテキストとスコアを表示
-  this.add.text(300, 150, 'Game Over', { fontSize: '32px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
-  this.add.text(300, 200, 'Final Score: ' + score, { fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
-  this.add.text(300, 230, 'High Score: ' + highScore, { fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
+  // ゲームオーバーテキストとスコアを表示（カスタムフォント適用）
+  this.add.text(300, 150, 'Game Over', { fontFamily: 'CustomFont', fontSize: '32px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
+  this.add.text(300, 200, 'Final Score: ' + score, { fontFamily: 'CustomFont', fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
+  this.add.text(300, 230, 'High Score: ' + highScore, { fontFamily: 'CustomFont', fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
 
-  // リスタートボタンを追加
-  const restartButton = this.add.text(300, 280, 'Restart', { fontSize: '24px', color: '#ffffff', backgroundColor: '#0000ff', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+  // リスタートボタンを追加（カスタムフォント適用）
+  const restartButton = this.add.text(300, 280, 'Restart', { fontFamily: 'CustomFont', fontSize: '24px', color: '#ffffff', backgroundColor: '#0000ff', padding: { x: 10, y: 5 } }).setOrigin(0.5);
   restartButton.setInteractive();
   restartButton.on('pointerdown', () => {
     score = 0;
@@ -123,7 +122,8 @@ function gameOver(player, obstacle) {
     this.scene.restart();
   });
 
-  // スペースキーでもリスタート
+  // スペースキーでもリスタート（重複しないように一度削除してから追加）
+  keys.jump.removeAllListeners(); // 既存のリスナーを削除
   keys.jump.on('down', () => {
     score = 0;
     scoreText.setText('Score: ' + score);
@@ -135,7 +135,6 @@ function update() {
   if (keys.jump.isDown && player.body.touching.down) {
     console.log("Jump triggered!");
     player.body.setVelocityY(-300);
-    // ジャンプ音を再生
     jumpSound.play();
   }
 

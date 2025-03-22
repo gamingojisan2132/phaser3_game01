@@ -1,11 +1,17 @@
+@font-face {
+    font-family: 'CustomFont';
+    src: url('assets/custom-font.ttf') format('truetype');
+}
+
 body {
     margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f0f0f0; /* 薄い灰色に戻す */
-  }
-  #game-container {
+    background-color: #f0f0f0;
+}
+
+#game-container {
     display: block;
-  }
+}
