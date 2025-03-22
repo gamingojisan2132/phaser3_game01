@@ -22,6 +22,7 @@ let ground;
 let obstacles;
 let score = 0;
 let scoreText;
+let highScore = localStorage.getItem('highScore') || 0; // 最高スコアをローカルストレージから取得
 
 function preload() {
   console.log("Preload is running!");
@@ -68,7 +69,7 @@ function create() {
 
   // 障害物を定期的に生成
   this.time.addEvent({
-    delay: 1200, // 2秒→1.5秒に短縮
+    delay: 1200,
     callback: spawnObstacle,
     callbackScope: this,
     loop: true
@@ -77,12 +78,11 @@ function create() {
 
 function spawnObstacle() {
   console.log("Spawning obstacle!");
-  // 障害物のサイズをランダムに（幅と高さを10～30ピクセルの範囲で）
   const size = Phaser.Math.Between(15, 35);
-  const obstacle = this.physics.add.sprite(600, 380 - size / 2, 'obstacle'); // Y座標をサイズに応じて調整
+  const obstacle = this.physics.add.sprite(600, 380 - size / 2, 'obstacle');
   obstacle.setDisplaySize(size, size);
   obstacles.add(obstacle);
-  obstacle.body.setVelocityX(-400); // 速度を-200→-300に
+  obstacle.body.setVelocityX(-400);
   obstacle.body.allowGravity = false;
   obstacle.body.setImmovable(false);
 }
@@ -90,18 +90,39 @@ function spawnObstacle() {
 function gameOver(player, obstacle) {
   console.log("Game Over! Final Score: " + score);
   this.physics.pause();
-  this.add.text(300, 200, 'Game Over\nFinal Score: ' + score, { fontSize: '32px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
-  this.time.delayedCall(2000, () => {
+
+  // 最高スコアを更新
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('highScore', highScore);
+  }
+
+  // ゲームオーバーテキストとスコアを表示
+  this.add.text(300, 150, 'Game Over', { fontSize: '32px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
+  this.add.text(300, 200, 'Final Score: ' + score, { fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
+  this.add.text(300, 230, 'High Score: ' + highScore, { fontSize: '24px', color: '#ff0000', align: 'center' }).setOrigin(0.5);
+
+  // リスタートボタンを追加
+  const restartButton = this.add.text(300, 280, 'Restart', { fontSize: '24px', color: '#ffffff', backgroundColor: '#0000ff', padding: { x: 10, y: 5 } }).setOrigin(0.5);
+  restartButton.setInteractive();
+  restartButton.on('pointerdown', () => {
     score = 0;
     scoreText.setText('Score: ' + score);
     this.scene.restart();
   });
+
+  // スペースキーでもリスタート
+  keys.jump.on('down', () => {
+    score = 0;
+    scoreText.setText('Score: ' + score);
+    this.scene.restart();
+  }, this);
 }
 
 function update() {
   if (keys.jump.isDown && player.body.touching.down) {
     console.log("Jump triggered!");
-    player.body.setVelocityY(-280);
+    player.body.setVelocityY(-300);
   }
 
   // 障害物がプレイヤーを通過したらスコア加算
