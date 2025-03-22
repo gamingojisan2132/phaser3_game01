@@ -6,12 +6,39 @@
 body {
     margin: 0;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #CCCCCC;
+    background-color: #758492;
+}
+
+#game-container canvas {
+    display: block;
+    width: 600px;
+    height: 400px;
 }
 
 #game-container {
-    display: block;
+    width: 600px;
+    height: 400px;
+    border: 2px solid white;
+    /* 2ピクセルの白い枠線を追加 */
+    /* オプションでシャドウを追加すると見栄えが良くなります */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+#game-description {
+    margin-left: 20px;
+    font-family: 'CustomFont', sans-serif;
+    color: #333;
+}
+
+#game-description h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+#game-description p {
+    font-size: 20px;
+    margin: 5px 0;
 }
