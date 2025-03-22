@@ -4,13 +4,17 @@ class TitleScene extends Phaser.Scene {
     super('TitleScene');
   }
 
-preload() {
-  this.load.image('title-background', 'assets/title-background.png');
-}
+  preload() {
+    this.load.image('title-background', 'assets/title-background.png');
+  }
 
   create() {
     // 背景を追加
-this.add.image(300, 200, 'title-background').setDisplaySize(600, 400);
+    this.add.image(300, 200, 'title-background').setDisplaySize(600, 400);
+
+    // ダミーテキストでフォントを強制的に読み込む（非表示）
+    this.add.text(-100, -100, 'Dummy', { fontFamily: 'CustomFont', fontSize: '1px' });
+
     // タイトルテキスト（フォント適用）
     this.add.text(300, 150, 'Inu desu', { fontFamily: 'CustomFont', fontSize: '48px', color: '#ffffff', align: 'center' }).setOrigin(0.5);
 
